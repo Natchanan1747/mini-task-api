@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  # Service ของ Express App
+  app:
+    build: . # สร้าง Image จาก Dockerfile ใน Directory นี้
+    ports:
+      - "5000:5000" # Map port 5000 ของเครื่องเรา เข้ากับ 5000 ใน container
+    volumes:
+      - ./src:/usr/src/app/src # Mount volume 'src' เพื่อให้ nodemon ทำงานได้
+    env_file:
+      - .env # ดึง Environment Variables จากไฟล์ .env
+    depends_on:
+      - db # บอกว่า app ต้องรอให้ db พร้อมก่อน
+    networks:
+      - task-network
+
+  # Service ของ MySQL Database
+  db:
+    image: mysql:8.0 # ใช้ MySQL 8
+    container_name: minitask_mysql
+    restart: always
+    ports:
+      - "3306:3306" # Map port 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # ใช้ตัวแปรจาก .env
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: taskuser
+      MYSQL_PASSWORD: taskpassword  
+    volumes:
+      - mysql-data:/var/lib/mysql # เก็บข้อมูล DB แม้จะปิด container
+    networks:
+      - task-network
+
+phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: minitask_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db # !! สำคัญมาก: ต้องระบุ host เป็นชื่อ service 'db'
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER} # ใช้ชื่อผู้ใช้ root เดียวกันกับที่ตั้งให้ db
+      PMA_PASSWORD: ${DB_PASSWORD} # ใช้รหัสผ่าน root เดียวกันกับที่ตั้งให้ db
+    ports:
+      - "8080:80"
+    depends_on:
+      - db # ต้องรอให้ db พร้อมทำงานก่อน
+    networks:
+      - task-network # เชื่อมต่อเข้า Network เดียวกัน
+
+volumes:
+  mysql-data:
+
+networks:
+  task-network:
+    driver: bridge
