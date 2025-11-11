@@ -28,6 +28,7 @@ services:
       MYSQL_PASSWORD: taskpassword  
     volumes:
       - mysql-data:/var/lib/mysql # เก็บข้อมูล DB แม้จะปิด container
+      - ./db:/docker-entrypoint-db.d
     networks:
       - task-network
 
