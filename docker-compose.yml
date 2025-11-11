@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   # Service ของ Express App
   app:
@@ -7,6 +6,7 @@ services:
       - "5000:5000" # Map port 5000 ของเครื่องเรา เข้ากับ 5000 ใน container
     volumes:
       - ./src:/usr/src/app/src # Mount volume 'src' เพื่อให้ nodemon ทำงานได้
+      - ./db:/docker-entrypoint-db.d # Mount volume 'db' เพื่อให้สามารถเพิ่มไฟล์ .sql เข้าไปได้
     env_file:
       - .env # ดึง Environment Variables จากไฟล์ .env
     depends_on:
@@ -32,21 +32,21 @@ services:
     networks:
       - task-network
 
-phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: minitask_phpmyadmin
-    restart: always
-    environment:
-      PMA_HOST: db # !! สำคัญมาก: ต้องระบุ host เป็นชื่อ service 'db'
-      PMA_PORT: 3306
-      PMA_USER: ${DB_USER} # ใช้ชื่อผู้ใช้ root เดียวกันกับที่ตั้งให้ db
-      PMA_PASSWORD: ${DB_PASSWORD} # ใช้รหัสผ่าน root เดียวกันกับที่ตั้งให้ db
-    ports:
-      - "8080:80"
-    depends_on:
-      - db # ต้องรอให้ db พร้อมทำงานก่อน
-    networks:
-      - task-network # เชื่อมต่อเข้า Network เดียวกัน
+  phpmyadmin:
+      image: phpmyadmin:latest
+      container_name: minitask_phpmyadmin
+      restart: always
+      environment:
+        PMA_HOST: db # !! สำคัญมาก: ต้องระบุ host เป็นชื่อ service 'db'
+        PMA_PORT: 3306
+        PMA_USER: ${DB_USER} # ใช้ชื่อผู้ใช้ root เดียวกันกับที่ตั้งให้ db
+        PMA_PASSWORD: ${DB_PASSWORD} # ใช้รหัสผ่าน root เดียวกันกับที่ตั้งให้ db
+      ports:
+        - "8080:80"
+      depends_on:
+        - db # ต้องรอให้ db พร้อมทำงานก่อน
+      networks:
+        - task-network # เชื่อมต่อเข้า Network เดียวกัน
 
 volumes:
   mysql-data:
