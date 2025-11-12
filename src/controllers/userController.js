@@ -1,14 +1,28 @@
 // src/controllers/user.controller.js
-// (เราจะสร้าง Model เพิ่ม)
+const User = require('../models/user');
+const { NotFoundError } = require('../utils/errors');
 
-// GET /api/v1/users [cite: 93]
+// GET /api/v1/users
 exports.listUsers = async (req, res, next) => {
-  // (Logic ดึง user ทั้งหมดจาก DB... เราจะข้ามไปก่อน)
-  res.status(200).json({ message: 'List of all users (admin only)' });
+    try {
+        // (ต้องเพิ่ม User.findAll() ใน model)
+        const users = await User.findAll();
+        res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
 };
 
-// GET /api/v1/users/me [cite: 85]
+// GET /api/v1/users/me
 exports.getMe = async (req, res, next) => {
-  // (Logic ดึงข้อมูล req.user.userId จาก DB)
-  res.status(200).json({ message: 'My profile data', user: req.user });
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+        return next(new NotFoundError('User not found'));
+        }
+        delete user.password;
+        res.status(200).json(user);
+    } catch (error) {
+        next(error);
+    }
 };

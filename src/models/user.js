@@ -21,8 +21,22 @@ const User = {
   findByEmail: async (email) => {
     const [rows] = await pool.query('SELECT * FROM Users WHERE email = ?', [email]);
     return rows[0];
+  },
+
+  // หา User ด้วย ID
+  findById: async (id) => {
+    const [rows] = await pool.query('SELECT * FROM Users WHERE id = ?', [id]);
+    return rows[0];
+  },
+
+  // ดึง User ทั้งหมด (สำหรับ Admin ดูรายชื่อผู้ใช้)
+  findAll: async () => {
+    // Select only safe fields. Never return all users' passwords.
+    const sql = 'SELECT id, email, name, role, isPremium, subscriptionExpiry, createdAt FROM Users';
+    const [rows] = await pool.query(sql);
+    return rows;
   }
-  // ... CRUD อื่นๆ จะตามมา
+
 };
 
 module.exports = User;

@@ -30,6 +30,13 @@ const Task = {
     return rows;
   },
 
+  // ดึง TAsk ทั้งหมดของเจ้าของ ownerId (GET /tasks)
+  findAllByOwner: async (ownerId) => {
+    const sql = 'SELECT * FROM Tasks WHERE ownerId = ? ORDER BY createdAt DESC';
+    const [rows] = await pool.query(sql, [ownerId]);
+    return rows;
+  },
+
   // ดึง Task ด้วย ID (GET /tasks/:id) [cite: 105]
   findById: async (id) => {
     const [rows] = await pool.query('SELECT * FROM Tasks WHERE id = ?', [id]);

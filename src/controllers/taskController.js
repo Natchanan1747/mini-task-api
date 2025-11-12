@@ -1,54 +1,73 @@
+// src/controllers/task.controller.js
 const Task = require('../models/task');
+const Idempotency = require('../models/idempotency');
+const { ValidationError, NotFoundError } = require('../utils/errors');
 
 // POST /api/v1/tasks
 exports.createTask = async (req, res, next) => {
   try {
-    const ownerId = req.user.userId; // 👈 ดึงมาจาก Token
-    const { title } = req.body; 
+    const idempotencyKey = req.headers['idempotency-key'];
+    const ownerId = req.user.userId;
 
-    if (!title) {
-      return res.status(400).json({ message: 'Title is required' });
+    if (idempotencyKey) {
+      const cached = await Idempotency.findKey(ownerId, idempotencyKey);
+      if (cached) {
+        return res.status(200).json(JSON.parse(cached.responseBody));
+      }
     }
-    
-    // ส่ง ownerId จาก req.user ไปยัง model
-    const task = await Task.create({ ...req.body, ownerId: ownerId }); 
+
+    const { title } = req.body;
+    if (!title) {
+      // ⭐️ เปลี่ยน
+      return next(new ValidationError('Title is required', { title: 'Title must not be empty' }));
+    }
+
+    const task = await Task.create({ ...req.body, ownerId: ownerId });
+
+    if (idempotencyKey) {
+      await Idempotency.saveKey(ownerId, idempotencyKey, task);
+    }
+
     res.status(201).json(task);
   } catch (error) {
     next(error);
   }
 };
 
-// GET /api/v1/tasks [cite: 100]
+// GET /api/v1/tasks
 exports.getTasks = async (req, res, next) => {
   try {
-    // (ยังไม่ทำ Filtering [cite: 104] หรือ RBAC/ABAC [cite: 235, 264] ในสัปดาห์นี้)
-    const tasks = await Task.findAll(req.query);
+    // (เราจะเพิ่ม logic การ filter/การดึงเฉพาะ task ตัวเองที่นี่)
+    // (สำหรับตอนนี้, เราแค่ดึง task ที่ ownerId = req.user.userId)
+    const tasks = await Task.findAllByOwner(req.user.userId);
     res.status(200).json(tasks);
   } catch (error) {
     next(error);
   }
 };
 
-// GET /api/v1/tasks/:id [cite: 105]
+// GET /api/v1/tasks/:id
 exports.getTaskById = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      // ⭐️ เปลี่ยน
+      return next(new NotFoundError('Task not found'));
     }
+    // (ABAC middleware (checkTaskAccess) ทำงานไปแล้ว)
     res.status(200).json(task);
   } catch (error) {
     next(error);
   }
 };
 
-// PUT /api/v1/tasks/:id [cite: 108]
+// PUT /api/v1/tasks/:id
 exports.updateTask = async (req, res, next) => {
   try {
-    // (ยังไม่ทำ Authorization check [cite: 272] ในสัปดาห์นี้)
     const task = await Task.update(req.params.id, req.body);
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      // ⭐️ เปลี่ยน
+      return next(new NotFoundError('Task not found'));
     }
     res.status(200).json(task);
   } catch (error) {
@@ -56,33 +75,34 @@ exports.updateTask = async (req, res, next) => {
   }
 };
 
-// PATCH /api/v1/tasks/:id/status [cite: 112]
+// PATCH /api/v1/tasks/:id/status
 exports.updateTaskStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
     if (!status) {
-      return res.status(400).json({ message: 'Status is required' });
+      // ⭐️ เปลี่ยน
+      return next(new ValidationError('Status is required'));
     }
     const task = await Task.updateStatus(req.params.id, status);
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      // ⭐️ เปลี่ยน
+      return next(new NotFoundError('Task not found'));
     }
-    // Endpoint นี้เป็น Idempotent [cite: 114, 159] อยู่แล้ว
     res.status(200).json(task);
   } catch (error) {
     next(error);
   }
 };
 
-// DELETE /api/v1/tasks/:id [cite: 115]
+// DELETE /api/v1/tasks/:id
 exports.deleteTask = async (req, res, next) => {
   try {
-    // (ยังไม่ทำ Authorization check [cite: 272] ในสัปดาห์นี้)
     const affectedRows = await Task.delete(req.params.id);
     if (affectedRows === 0) {
-      return res.status(404).json({ message: 'Task not found' });
+      // ⭐️ เปลี่ยน
+      return next(new NotFoundError('Task not found'));
     }
-    res.status(204).send(); // 204 No Content
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
