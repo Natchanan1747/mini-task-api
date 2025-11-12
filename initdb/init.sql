@@ -30,3 +30,14 @@ CREATE TABLE IF NOT EXISTS Tasks (
     FOREIGN KEY (ownerId) REFERENCES Users(id) ON DELETE CASCADE,
     FOREIGN KEY (assignedTo) REFERENCES Users(id) ON DELETE SET NULL
 );
+
+-- ตาราง IdempotencyKeys (สำหรับจัดการ Idempotency Keys)
+CREATE TABLE IF NOT EXISTS IdempotencyKeys (
+    id VARCHAR(255) PRIMARY KEY,
+    userId VARCHAR(255) NOT NULL,
+    idempotencyKey VARCHAR(255) NOT NULL,
+    responseBody TEXT,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE,
+    UNIQUE KEY (userId, idempotencyKey)
+);
