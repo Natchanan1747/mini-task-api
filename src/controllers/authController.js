@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
-const authService = require('../services/auth.service');
+const authService = require('../services/authService');
 
 // POST /api/v1/auth/register 
 exports.register = async (req, res, next) => {
