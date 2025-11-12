@@ -2,7 +2,6 @@
 -- ไม่จำเป็นต้องมีคำสั่ง 'CREATE DATABASE' หรือ 'USE' ที่นี่
 
 -- ตาราง Users (Users Table)
-[cite_start]-- [cite: 19, 41-53]
 CREATE TABLE IF NOT EXISTS Users (
     id VARCHAR(255) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -15,7 +14,6 @@ CREATE TABLE IF NOT EXISTS Users (
 );
 
 -- ตาราง Tasks (Tasks Table)
-[cite_start]-- [cite: 20, 21-40]
 CREATE TABLE IF NOT EXISTS Tasks (
     id VARCHAR(255) PRIMARY KEY,
     title VARCHAR(255) NOT NULL,

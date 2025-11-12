@@ -18,7 +18,7 @@ const testConnection = async () => {
     console.log('Database connected successfully!');
   } catch (error) {
     console.error('Failed to connect to database:', error);
-    process.exit(1); // ออกจากโปรแกรมถ้าต่อ DB ไม่ได้
+    // process.exit(1); // ออกจากโปรแกรมถ้าต่อ DB ไม่ได้
   }
 };
 
