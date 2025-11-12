@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
+const authenticate = require('../middleware/authenticate');
 
 // v1 Routes [cite: 96]
+// ใช้ authenticate กับทุก route ในไฟล์นี้
+router.use(authenticate); // Middleware ตรวจสอบ token สำหรับทุก route ด้านล่างนี้
+
 router.post('/', taskController.createTask); // POST /api/v1/tasks [cite: 97]
 router.get('/', taskController.getTasks); // GET /api/v1/tasks [cite: 100]
 router.get('/:id', taskController.getTaskById); // GET /api/v1/tasks/:id [cite: 105]

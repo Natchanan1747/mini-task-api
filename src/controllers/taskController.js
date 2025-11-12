@@ -1,20 +1,20 @@
 const Task = require('../models/task');
 
-// POST /api/v1/tasks [cite: 97]
+// POST /api/v1/tasks
 exports.createTask = async (req, res, next) => {
   try {
-    // (ชั่วคราว: สัปดาห์ที่ 1 เรายังไม่มี Auth  จึงต้องส่ง ownerId มาใน body ก่อน)
-    // (ในสัปดาห์ที่ 2 เราจะเปลี่ยนเป็น req.user.id)
-    const { title, ownerId } = req.body; 
-    if (!title || !ownerId) {
-      // (Error Handling พื้นฐาน )
-      return res.status(400).json({ message: 'Title and OwnerId are required' });
-    }
+    const ownerId = req.user.userId; // 👈 ดึงมาจาก Token
+    const { title } = req.body; 
 
-    const task = await Task.create({ ...req.body, ownerId });
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
+    
+    // ส่ง ownerId จาก req.user ไปยัง model
+    const task = await Task.create({ ...req.body, ownerId: ownerId }); 
     res.status(201).json(task);
   } catch (error) {
-    next(error); // ส่งต่อไปยัง errorHandler
+    next(error);
   }
 };
 
