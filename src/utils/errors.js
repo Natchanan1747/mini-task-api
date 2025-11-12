@@ -38,6 +38,14 @@ class NotFoundError extends BaseError {
   }
 }
 
+// 429 Too Many Requests
+class RateLimitExceededError extends BaseError {
+  constructor(message = 'Too many requests') {
+    [cite_start]// [cite: 138, 181]
+    super(message, 429, 'RATE_LIMIT_EXCEEDED');
+  }
+}
+
 module.exports = {
   BaseError,
   ValidationError,
